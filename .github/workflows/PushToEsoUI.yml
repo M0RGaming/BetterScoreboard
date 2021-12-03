@@ -26,6 +26,7 @@ jobs:
         with:
           EsoUIToken: ${{secrets.ESOUI_API_TOKEN}}
           EsoUIID: 3182
+          readme: 'readme.txt'
           path: './BetterScoreboard/'
           version: ${{github.event.inputs.version}}
           artifact: 'BetterScoreboard.zip'

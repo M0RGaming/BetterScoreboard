@@ -2,11 +2,7 @@ BetterScoreboard = {}
 local bs = BetterScoreboard
 -- Written by M0R_Gaming
 
---ZO_ShouldPreferUserId
 bs.name = "BetterScoreboard"
---bs.last = {}
---bs.queue = {"Start"}
-
 bs.scores = {}
 
 
@@ -23,9 +19,6 @@ local classIcons = {
 
 
 SecurePostHook(Battleground_Scoreboard_Player_Row, "UpdateRow", function(row)
-	--bs.last = row
-	--bs.queue[#bs.queue+1] = row
-	--BetterScoreboard.last[1].nameLabel:GetText()
 	local charName = zo_strformat(SI_PLAYER_NAME, row.data.characterName)
 	local displayName = zo_strformat(SI_PLAYER_NAME, row.data.displayName)
 	local formattedName = ""
@@ -43,7 +36,6 @@ SecurePostHook(Battleground_Scoreboard_Player_Row, "UpdateRow", function(row)
 end)
 
 SecurePostHook(Battleground_Scoreboard_Player_Row, "Initialize", function(self, row)
-	--d(row)
 	local rowName = row:GetName()
 	local metalScore = row:GetNamedChild("MedalScore")
 	local nameLabel = row:GetNamedChild("NameLabel")
@@ -67,9 +59,6 @@ SecurePostHook(Battleground_Scoreboard_Player_Row, "Initialize", function(self, 
 	self.damage = damage
 	self.heal = heal
 	self.classIcon = classIcon
-
-	--bs.scores[self.key] = {damage,heal}
-	--bs.queue[#bs.queue+1] = row
 end)
 
 
@@ -107,22 +96,6 @@ function bs.somethingChanged(code)
 end
 
 
---[[
-function bs.playerActivated()
-
-end
---]]
-
---EVENT_BATTLEGROUND_SCOREBOARD_UPDATED
-
--- local score = GetScoreboardEntryScoreByType(entryIndex, scoreType)
---[[
-local primaryName = ZO_GetPrimaryPlayerName(data.displayName, data.characterName)
-local formattedName = zo_strformat(SI_PLAYER_NAME, primaryName)
-self.nameLabel:SetText(formattedName)
-]]
-
-
 
 
 -- The following was adapted from https://wiki.esoui.com/Circonians_Stamina_Bar_Tutorial#lua_Structure
@@ -140,12 +113,8 @@ end
 --  Initialize Function --
 -------------------------------------------------------------------------------------------------
 function bs:Initialize()
-	-- Addon Settings Menu
-
 	EVENT_MANAGER:UnregisterForEvent(bs.name, EVENT_ADD_ON_LOADED)
-
 	EVENT_MANAGER:RegisterForEvent(bs.name, EVENT_BATTLEGROUND_SCOREBOARD_UPDATED, bs.somethingChanged)
-	--EVENT_MANAGER:RegisterForEvent(bs.name, EVENT_BATTLEGROUND_LEADERBOARD_DATA_CHANGED, bs.somethingChanged)
 end
  
 -------------------------------------------------------------------------------------------------

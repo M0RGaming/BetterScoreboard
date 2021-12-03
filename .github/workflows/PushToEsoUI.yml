@@ -1,0 +1,31 @@
+name: PushToEsoUI
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version'     
+        required: true
+        default: '2.1'
+
+jobs:
+  hello_world_job:
+    runs-on: ubuntu-latest
+    name: Pushing
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: 'BetterScoreboard'
+
+      - name: Zip release
+        run: 7z a BetterScoreboard.zip * -xr!*.git*
+
+      - name: Push to EsoUI
+        id: push
+        uses: M0RGaming/Push-To-EsoUI@main
+        with:
+          EsoUIToken: ${{secrets.ESOUI_API_TOKEN}}
+          EsoUIID: 3182
+          path: './BetterScoreboard/'
+          version: ${{github.event.inputs.version}}
+          artifact: 'BetterScoreboard.zip'

@@ -1,0 +1,16 @@
+Bugfix 2.1
+-----------
+-Fixed bug where class icons were slightly dimmed
+
+Version 2.0
+-----------
+Added class icons to the scoreboard
+-Bumped Api Version to Deadlands
+
+Bugfix 1.1
+-----------
+-Fixed bug where it didn't show damage/healing after a match.
+
+Version 1.0
+-----------
+Inital Upload

@@ -6,3 +6,4 @@
 ## Author: |c0DC1CF@M0R_Gaming|r
 
 BetterScoreboard.lua
+BetterScoreboard.xml

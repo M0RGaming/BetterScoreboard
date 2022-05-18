@@ -1,3 +1,10 @@
+Version 3.0
+-----------
+Added new tab in activity finder with the ability to queue for multiple bgs at once
+Added inital implementation and data collection for charecter wide bg stats
+*This will only collect data for now, but in a future date it will display it
+-Bumped Api Version to High Isle
+
 Bugfix 2.1
 -----------
 -Fixed bug where class icons were slightly dimmed

@@ -5,6 +5,7 @@ local bs = BetterScoreboard
 bs.name = "BetterScoreboard"
 bs.scores = {}
 bs.queues = {}
+bs.vars = {}
 
 local classIcons = {
 	"esoui/art/icons/class/gamepad/gp_class_dragonknight.dds",
@@ -13,6 +14,24 @@ local classIcons = {
 	"esoui/art/icons/class/gamepad/gp_class_warden.dds",
 	"esoui/art/icons/class/gamepad/gp_class_necromancer.dds",
 	"esoui/art/icons/class/gamepad/gp_class_templar.dds"
+}
+
+
+local defaultSettings = {
+	queueSelections = {},
+	kda = {
+		kills = 0,
+		deaths = 0,
+		assists = 0
+	},
+	wlt = {
+		wins = 0,
+		losses = 0,
+		ties = 0
+	},
+	points = 0,
+	damage = 0,
+	heals = 0
 }
 
 
@@ -163,8 +182,19 @@ function bs.buildPanel()
 
 		ZO_TriStateCheckButton_SetState(checkbox, TRISTATE_CHECK_BUTTON_UNCHECKED)
 		ZO_TriStateCheckButton_SetStateChangeFunction(checkbox, function(control, checkState)
-			location:SetSelected(checkValues[checkState])
+			
 			--d("Row ".. i.. " has become "..tostring(checkValues[checkState]))
+
+			local setState = checkValues[checkState]
+			local locationName = location.rawName
+
+			location:SetSelected(setState)
+			if setState then
+				bs.vars.queueSelections[locationName] = true
+			elseif (not setState) and (bs.vars.queueSelections[locationName]) then
+				bs.vars.queueSelections[locationName] = nil
+			end
+
 		end)
 
 		row:SetAnchor(TOPCENTER, last, BOTTOMCENTER, 0, offset)
@@ -187,21 +217,33 @@ function bs.buildPanel()
 			for i,data in ipairs(rows) do
 				local checkbox = data[1]:GetNamedChild("Check")
 				local location = data[2]
+				local locationName = location.rawName
+
+
 				ZO_CheckButton_Enable(checkbox)
 
 				local state = TRISTATE_CHECK_BUTTON_UNCHECKED
 
+				--[[ -- Old logic regarding queue selection
 				if (location.minGroupSize <= groupSize and location.maxGroupSize >= groupSize) or
 					(location.minGroupSize >= location.maxGroupSize and groupSize == 0) then
 						state = TRISTATE_CHECK_BUTTON_CHECKED
+				end
+				--]]
+				if bs.vars.queueSelections[locationName] then
+					state = TRISTATE_CHECK_BUTTON_CHECKED
 				end
 
 				ZO_TriStateCheckButton_SetState(checkbox, state)
 				if groupSize > location.maxGroupSize then
 					ZO_CheckButton_Disable(checkbox)
+					data[2]:SetSelected(false)
+				else
+					data[2]:SetSelected(checkValues[state])
 				end
 
-				data[2]:SetSelected(checkValues[state])
+
+
 			end
 		end
    end)
@@ -232,6 +274,101 @@ function bs.startSearch()
 		ZO_ACTIVITY_FINDER_ROOT_MANAGER:StartSearch()
 	end
 end
+
+
+
+
+
+-- Save statistics after bg ends
+
+function bs.bgEnded(eventCode, previousState, currentState)
+	--d("BG State Changed: "..previousState.. " going to "..currentState)
+	if (currentState == BATTLEGROUND_STATE_POSTGAME) then
+		local player = GetScoreboardPlayerEntryIndex()
+		bs.vars.damage = bs.vars.damage + GetScoreboardEntryScoreByType(player, SCORE_TRACKER_TYPE_DAMAGE_DONE)
+		bs.vars.heals = bs.vars.damage + GetScoreboardEntryScoreByType(player, SCORE_TRACKER_TYPE_HEALING_DONE)
+		--d("Damage: ".. GetScoreboardEntryScoreByType(player, SCORE_TRACKER_TYPE_DAMAGE_DONE))
+		--d("Heals: ".. GetScoreboardEntryScoreByType(player, SCORE_TRACKER_TYPE_HEALING_DONE))
+		--d("Kills: ".. GetScoreboardEntryScoreByType(player, SCORE_TRACKER_TYPE_KILL))
+		--d("Deaths: ".. GetScoreboardEntryScoreByType(player, SCORE_TRACKER_TYPE_DEATH))
+		--d("Assists: ".. GetScoreboardEntryScoreByType(player, SCORE_TRACKER_TYPE_ASSISTS))
+		local kda = bs.vars.kda
+
+		kda.kills = kda.kills + GetScoreboardEntryScoreByType(player, SCORE_TRACKER_TYPE_KILL)
+		kda.deaths = kda.deaths + GetScoreboardEntryScoreByType(player, SCORE_TRACKER_TYPE_DEATH)
+		kda.assists = kda.assists + GetScoreboardEntryScoreByType(player, SCORE_TRACKER_TYPE_ASSISTS)
+
+		local fire = GetCurrentBattlegroundScore(BATTLEGROUND_ALLIANCE_FIRE_DRAKES)
+		local pit = GetCurrentBattlegroundScore(BATTLEGROUND_ALLIANCE_PIT_DAEMONS)
+		local storm = GetCurrentBattlegroundScore(BATTLEGROUND_ALLIANCE_STORM_LORDS)
+		local playerAlliance = GetUnitBattlegroundAlliance('player')
+
+		local places = {}
+
+		if (fire > pit) and (fire > storm) then
+			places[BATTLEGROUND_ALLIANCE_FIRE_DRAKES] = 1
+
+			if (pit > storm) then
+				places[BATTLEGROUND_ALLIANCE_PIT_DAEMONS] = 2
+				places[BATTLEGROUND_ALLIANCE_STORM_LORDS] = 3
+			else
+				places[BATTLEGROUND_ALLIANCE_STORM_LORDS] = 2
+				places[BATTLEGROUND_ALLIANCE_PIT_DAEMONS] = 3
+			end
+
+		elseif (pit > fire) and (pit > storm) then
+			places[BATTLEGROUND_ALLIANCE_PIT_DAEMONS] = 1
+
+			if (fire > storm) then
+				places[BATTLEGROUND_ALLIANCE_FIRE_DRAKES] = 2
+				places[BATTLEGROUND_ALLIANCE_STORM_LORDS] = 3
+			else
+				places[BATTLEGROUND_ALLIANCE_STORM_LORDS] = 2
+				places[BATTLEGROUND_ALLIANCE_FIRE_DRAKES] = 3
+			end
+
+		else
+			places[BATTLEGROUND_ALLIANCE_STORM_LORDS] = 1
+
+			if (fire > pit) then
+				places[BATTLEGROUND_ALLIANCE_FIRE_DRAKES] = 2
+				places[BATTLEGROUND_ALLIANCE_PIT_DAEMONS] = 3
+			else
+				places[BATTLEGROUND_ALLIANCE_PIT_DAEMONS] = 2
+				places[BATTLEGROUND_ALLIANCE_FIRE_DRAKES] = 3
+			end
+
+		end
+
+		--[[
+		wlt = {
+			wins = 0,
+			losses = 0,
+			ties = 0
+		},
+		]]
+
+
+		local wlt = bs.vars.wlt
+
+		--d("Place: ".. places[playerAlliance])
+		if (places[playerAlliance] == 1) then
+			wlt.wins = wlt.wins + 1
+		elseif (places[playerAlliance] == 2) then
+			wlt.ties = wlt.ties + 1
+		else
+			wlt.losses = wlt.losses + 1
+		end
+	end
+end
+
+
+
+
+
+
+
+
 -- The following was adapted from https://wiki.esoui.com/Circonians_Stamina_Bar_Tutorial#lua_Structure
 
 -------------------------------------------------------------------------------------------------
@@ -249,6 +386,8 @@ end
 function bs:Initialize()
 	EVENT_MANAGER:UnregisterForEvent(bs.name, EVENT_ADD_ON_LOADED)
 	EVENT_MANAGER:RegisterForEvent(bs.name, EVENT_BATTLEGROUND_SCOREBOARD_UPDATED, bs.somethingChanged)
+	EVENT_MANAGER:RegisterForEvent(bs.name, EVENT_BATTLEGROUND_STATE_CHANGED, bs.bgEnded)
+	bs.vars = ZO_SavedVars:NewCharacterIdSettings("BSVars", 1, nil, defaultSettings)
 	bs.buildQueues()
 	bs.buildPanel()
 end

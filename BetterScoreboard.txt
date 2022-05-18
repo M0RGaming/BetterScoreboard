@@ -4,6 +4,7 @@
 ## AddOnVersion: 3
 ## Description: A small addon designed to bring additional features to the battlegrounds scoreboard.
 ## Author: |c0DC1CF@M0R_Gaming|r
+## SavedVariables: BSVars
 
 BetterScoreboard.lua
 BetterScoreboard.xml

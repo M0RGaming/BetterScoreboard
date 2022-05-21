@@ -286,7 +286,7 @@ function bs.bgEnded(eventCode, previousState, currentState)
 	if (currentState == BATTLEGROUND_STATE_POSTGAME) then
 		local player = GetScoreboardPlayerEntryIndex()
 		bs.vars.damage = bs.vars.damage + GetScoreboardEntryScoreByType(player, SCORE_TRACKER_TYPE_DAMAGE_DONE)
-		bs.vars.heals = bs.vars.damage + GetScoreboardEntryScoreByType(player, SCORE_TRACKER_TYPE_HEALING_DONE)
+		bs.vars.heals = bs.vars.heals + GetScoreboardEntryScoreByType(player, SCORE_TRACKER_TYPE_HEALING_DONE)
 		--d("Damage: ".. GetScoreboardEntryScoreByType(player, SCORE_TRACKER_TYPE_DAMAGE_DONE))
 		--d("Heals: ".. GetScoreboardEntryScoreByType(player, SCORE_TRACKER_TYPE_HEALING_DONE))
 		--d("Kills: ".. GetScoreboardEntryScoreByType(player, SCORE_TRACKER_TYPE_KILL))

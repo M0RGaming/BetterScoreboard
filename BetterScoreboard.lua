@@ -387,7 +387,7 @@ function bs:Initialize()
 	EVENT_MANAGER:UnregisterForEvent(bs.name, EVENT_ADD_ON_LOADED)
 	EVENT_MANAGER:RegisterForEvent(bs.name, EVENT_BATTLEGROUND_SCOREBOARD_UPDATED, bs.somethingChanged)
 	EVENT_MANAGER:RegisterForEvent(bs.name, EVENT_BATTLEGROUND_STATE_CHANGED, bs.bgEnded)
-	bs.vars = ZO_SavedVars:NewCharacterIdSettings("BSVars", 1, nil, defaultSettings)
+	bs.vars = ZO_SavedVars:NewCharacterIdSettings("BSVars", 2, nil, defaultSettings)
 	bs.buildQueues()
 	bs.buildPanel()
 end

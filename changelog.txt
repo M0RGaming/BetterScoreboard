@@ -1,3 +1,9 @@
+Version 4.0
+-----------
+Added text to the medals sidebar to state the current BG type
+-Fixed bug where no queues would show up in the custom activity finder
+-API Bump
+
 Version 3.1
 -----------
 -Fixed bug where healing data was added ontop of damage data

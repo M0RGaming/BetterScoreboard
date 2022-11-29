@@ -81,7 +81,6 @@ SecurePostHook(Battleground_Scoreboard_Player_Row, "Initialize", function(self, 
 end)
 
 
-
 local function updateScore(i)
 	local damage = GetScoreboardEntryScoreByType(i,1)
 	local heal = GetScoreboardEntryScoreByType(i,2)
@@ -131,7 +130,7 @@ function bs.buildQueues()
 			if not isLocked then
 				local locationsData = ZO_ACTIVITY_FINDER_ROOT_MANAGER:GetLocationsData(activityType)
 				for _, location in ipairs(locationsData) do
-					if filterModeData:IsEntryTypeVisible(location:GetEntryType()) and location:DoesPlayerMeetLevelRequirements() then
+					if filterModeData:IsEntryTypeVisible(location:GetEntryType()) and location:IsActive() then
 						bs.queues[#bs.queues+1] = location
 					end
 				end
@@ -278,10 +277,23 @@ end
 
 
 
+bs.currentName = ""
 
 -- Save statistics after bg ends
 
 function bs.bgEnded(eventCode, previousState, currentState)
+
+	-- Change the bg name on the sidebar
+	local name = GetString("SI_BATTLEGROUNDGAMETYPE", GetBattlegroundGameType(GetCurrentBattlegroundId()))
+	if not (name == bs.currentName) then 
+		bs.currentName = name
+		if IsInGamepadPreferredMode() then
+			BATTLEGROUND_MATCH_INFO_GAMEPAD.control:GetNamedChild("ContainerTitle"):SetText(name)
+		else
+			BATTLEGROUND_MATCH_INFO_KEYBOARD.control:GetNamedChild("ContainerTitle"):SetText(name)
+		end
+	end
+
 	--d("BG State Changed: "..previousState.. " going to "..currentState)
 	if (currentState == BATTLEGROUND_STATE_POSTGAME) then
 		local player = GetScoreboardPlayerEntryIndex()
@@ -365,6 +377,11 @@ end
 
 
 
+function bs.updateLocations()
+	bs.buildQueues()
+	bs.buildPanel()
+	ZO_ACTIVITY_FINDER_ROOT_MANAGER:UnregisterCallback("OnUpdateLocationData", bs.updateLocations)
+end
 
 
 
@@ -388,8 +405,7 @@ function bs:Initialize()
 	EVENT_MANAGER:RegisterForEvent(bs.name, EVENT_BATTLEGROUND_SCOREBOARD_UPDATED, bs.somethingChanged)
 	EVENT_MANAGER:RegisterForEvent(bs.name, EVENT_BATTLEGROUND_STATE_CHANGED, bs.bgEnded)
 	bs.vars = ZO_SavedVars:NewCharacterIdSettings("BSVars", 2, nil, defaultSettings)
-	bs.buildQueues()
-	bs.buildPanel()
+	ZO_ACTIVITY_FINDER_ROOT_MANAGER:RegisterCallback("OnUpdateLocationData", bs.updateLocations)
 end
  
 -------------------------------------------------------------------------------------------------

@@ -1,3 +1,8 @@
+Version 4.1
+-----------
+Fixed Arcanist's Icons not showing up
+-API Bump
+
 Version 4.0
 -----------
 Added text to the medals sidebar to state the current BG type

@@ -16,6 +16,7 @@ local classIcons = {
 	"esoui/art/icons/class/gamepad/gp_class_templar.dds"
 }
 
+classIcons[117] = "esoui/art/icons/class/gamepad/gp_class_arcanist.dds"
 
 local defaultSettings = {
 	queueSelections = {},

@@ -37,8 +37,31 @@ local defaultSettings = {
 
 
 
+local function updateScore(i, roundIndex, showAggregate)
+	local damage = 0
+	local heal = 0
+	if not showAggregate then -- to show aggrigate its a seperate function, instead of a paramater for some reason
+		damage = GetScoreboardEntryScoreByType(i, SCORE_TRACKER_TYPE_DAMAGE_DONE, roundIndex)
+		heal = GetScoreboardEntryScoreByType(i, SCORE_TRACKER_TYPE_HEALING_DONE, roundIndex)
+	else
+		damage = GetBattlegroundCumulativeScoreForScoreboardEntryByType(i, SCORE_TRACKER_TYPE_DAMAGE_DONE, roundIndex)
+		heal = GetBattlegroundCumulativeScoreForScoreboardEntryByType(i, SCORE_TRACKER_TYPE_HEALING_DONE, roundIndex)
+	end
+	
 
-SecurePostHook(Battleground_Scoreboard_Player_Row, "UpdateRow", function(row)
+	damage = string.format("%sk",math.floor(damage/1000))
+	heal = string.format("%sk",math.floor(heal/1000))
+
+	if damage and bs.scores[i] then
+		bs.scores[i].damage:SetText(damage)
+	end
+	if heal and bs.scores[i] then
+		bs.scores[i].heal:SetText(heal)
+	end
+end
+
+
+local function updateRow(row)
 	local charName = zo_strformat(SI_PLAYER_NAME, row.data.characterName)
 	local displayName = zo_strformat(SI_PLAYER_NAME, row.data.displayName)
 	local formattedName = ""
@@ -53,7 +76,20 @@ SecurePostHook(Battleground_Scoreboard_Player_Row, "UpdateRow", function(row)
 
 	local classId = GetScoreboardEntryClassId(row.data.entryIndex)
 	row.classIcon:SetTexture(classIcons[classId])
-end)
+
+
+
+	if row.data.isPlaceholderEntry then -- new bgs have placeholders
+		row.nameLabel:SetText("")
+		row.classIcon:SetTexture("/esoui/art/icons/heraldrycrests_misc_blank_01.dds") -- blank texture
+		row.heal:SetText("")
+		row.damage:SetText("")
+	end
+end
+
+
+
+SecurePostHook(Battleground_Scoreboard_Player_Row, "UpdateRow", updateRow)
 
 SecurePostHook(Battleground_Scoreboard_Player_Row, "Initialize", function(self, row)
 	local rowName = row:GetName()
@@ -82,35 +118,46 @@ SecurePostHook(Battleground_Scoreboard_Player_Row, "Initialize", function(self, 
 end)
 
 
-local function updateScore(i)
-	local damage = GetScoreboardEntryScoreByType(i,1)
-	local heal = GetScoreboardEntryScoreByType(i,2)
 
-	damage = string.format("%sk",math.floor(damage/1000))
-	heal = string.format("%sk",math.floor(heal/1000))
+SecurePostHook(BATTLEGROUND_SCOREBOARD_FRAGMENT, "UpdateAll", function(self)
+	local showAggregate = BATTLEGROUND_SCOREBOARD_FRAGMENT:ShouldShowAggregateScores()
+	local roundIndex = showAggregate and GetCurrentBattlegroundRoundIndex() or BATTLEGROUND_SCOREBOARD_FRAGMENT.viewedRound
 
-	if damage and bs.scores[i] then
-		bs.scores[i].damage:SetText(damage)
+
+
+	-- when the stuff updates, reload the row list as things prob changed
+	bs.scores = {}
+	for i,v in pairs(self.playerEntryData) do
+		bs.scores[v.entryIndex] = v.rowObject
+		updateRow(v.rowObject)
+		updateScore(v.entryIndex, roundIndex, showAggregate)
 	end
-	if heal and bs.scores[i] then
-		bs.scores[i].heal:SetText(heal)
-	end
-end
+end)
+
+
+
 
 SecurePostHook(Battleground_Scoreboard_Player_Row, "SetupOnAcquire", function(self, panel, poolKey, data)
+	local showAggregate = BATTLEGROUND_SCOREBOARD_FRAGMENT:ShouldShowAggregateScores()
+	local roundIndex = showAggregate and GetCurrentBattlegroundRoundIndex() or BATTLEGROUND_SCOREBOARD_FRAGMENT.viewedRound
+
 	for i=1,GetNumScoreboardEntries() do
 		local _, name = GetScoreboardEntryInfo(i)
 		if name == data.displayName then
 			bs.scores[i] = self
-			updateScore(i)
+			updateScore(i, roundIndex, showAggregate)
 		end
 	end
 end)
 
 
 function bs.somethingChanged(code)
+	-- logic used in base game BATTLEGROUND_SCOREBOARD_FRAGMENT to identify round index. Hopefully it just works without any issues
+	local showAggregate = BATTLEGROUND_SCOREBOARD_FRAGMENT:ShouldShowAggregateScores()
+	local roundIndex = showAggregate and GetCurrentBattlegroundRoundIndex() or BATTLEGROUND_SCOREBOARD_FRAGMENT.viewedRound
+	
 	for i=1,GetNumScoreboardEntries() do
-		updateScore(i)
+		updateScore(i, roundIndex, showAggregate)
 	end
 end
 
@@ -404,7 +451,11 @@ end
 function bs:Initialize()
 	EVENT_MANAGER:UnregisterForEvent(bs.name, EVENT_ADD_ON_LOADED)
 	EVENT_MANAGER:RegisterForEvent(bs.name, EVENT_BATTLEGROUND_SCOREBOARD_UPDATED, bs.somethingChanged)
-	EVENT_MANAGER:RegisterForEvent(bs.name, EVENT_BATTLEGROUND_STATE_CHANGED, bs.bgEnded)
+
+
+	--commenting out statistic collection until further notice (when i feel like updating it); its not like it was even being shown previously
+	--EVENT_MANAGER:RegisterForEvent(bs.name, EVENT_BATTLEGROUND_STATE_CHANGED, bs.bgEnded)
+	
 	bs.vars = ZO_SavedVars:NewCharacterIdSettings("BSVars", 2, nil, defaultSettings)
 	ZO_ACTIVITY_FINDER_ROOT_MANAGER:RegisterCallback("OnUpdateLocationData", bs.updateLocations)
 end

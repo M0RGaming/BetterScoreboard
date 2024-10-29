@@ -1,3 +1,11 @@
+Version 4.2
+-----------
+Fixed bug (hopefully) with the new deathmatch rounds not properly displaying statistics
+Temporarily removed statistic collection since I didnt want to update it just yet (and it wasnt being displayed anyways)
+-Updated to fix random bugs regarding new BGs (like placeholder slots now not being displayed)
+-API Bump
+
+
 Version 4.1
 -----------
 Fixed Arcanist's Icons not showing up

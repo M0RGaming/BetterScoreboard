@@ -1,3 +1,7 @@
+Version 5.0
+-----------
+Console Edition
+
 Version 4.2
 -----------
 Fixed bug (hopefully) with the new deathmatch rounds not properly displaying statistics

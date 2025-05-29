@@ -71,9 +71,9 @@ end
 
 
 
-SecurePostHook(Battleground_Scoreboard_Player_Row, "UpdateRow", updateRow)
+SecurePostHook(ZO_Battleground_Scoreboard_Player_Row_Object, "UpdateRow", updateRow)
 
-SecurePostHook(Battleground_Scoreboard_Player_Row, "Initialize", function(self, row)
+SecurePostHook(ZO_Battleground_Scoreboard_Player_Row_Object, "Initialize", function(self, row)
 	local rowName = row:GetName()
 	local metalScore = row:GetNamedChild("MedalScore")
 	local nameLabel = row:GetNamedChild("NameLabel")
@@ -85,8 +85,8 @@ SecurePostHook(Battleground_Scoreboard_Player_Row, "Initialize", function(self, 
 	heal:SetTransformOffsetY(15)
 	damage:SetTransformOffsetY(-5)
 	heal:SetColor(1,0.85,0)
-	damage:SetFont("ZoFontGame")
-	heal:SetFont("ZoFontGame")
+	damage:SetFont("$(GAMEPAD_MEDIUM_FONT)|$(GP_18)|soft-shadow-thin")
+	heal:SetFont("$(GAMEPAD_MEDIUM_FONT)|$(GP_18)|soft-shadow-thin")
 
 	local classIcon = CreateControl(rowName.."ClassIcon",row,CT_TEXTURE)
 	classIcon:SetAnchor(RIGHT,nameLabel,LEFT,-15,0,0)
@@ -119,7 +119,7 @@ end)
 
 
 
-SecurePostHook(Battleground_Scoreboard_Player_Row, "SetupOnAcquire", function(self, panel, poolKey, data)
+SecurePostHook(ZO_Battleground_Scoreboard_Player_Row_Object, "SetupOnAcquire", function(self, panel, poolKey, data)
 	local showAggregate = BATTLEGROUND_SCOREBOARD_FRAGMENT:ShouldShowAggregateScores()
 	local roundIndex = showAggregate and GetCurrentBattlegroundRoundIndex() or BATTLEGROUND_SCOREBOARD_FRAGMENT.viewedRound
 
